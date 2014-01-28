@@ -12,16 +12,20 @@
 class Pattern
   {
 private:
-   
+   int pattern[];
+   int outcome;
 public:
-                     Pattern();
-                    ~Pattern();
+   
+   string sig();
+   Pattern(int &prices, int size);
+   ~Pattern();
   };
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-Pattern::Pattern()
+Pattern::Pattern(int &prices, int size)
   {
+   
   }
 //+------------------------------------------------------------------+
 //|                                                                  |
@@ -30,3 +34,6 @@ Pattern::~Pattern()
   {
   }
 //+------------------------------------------------------------------+
+string Pattern::sig(void){
+   return ("lol");
+}

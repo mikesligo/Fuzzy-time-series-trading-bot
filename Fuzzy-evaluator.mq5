@@ -5,6 +5,7 @@
 #include "Libraries/hline.mqh"
 #include "Libraries/CDynamicArray.mqh"
 #include "Pattern.mqh"
+#include <Arrays/ArrayInt.mqh>
 
 input int             Divisions    = 20;
 input double          Top          = 1.4;
@@ -12,11 +13,15 @@ input double          Bottom       = 1.27;
 input int             Pattern_size = 5;
 
 double divisions[];
-CDynamicArray knowledge; // representing the jumps in fuzzy divisions per bar
+CArrayInt movement_sequence; // representing the jumps in fuzzy divisions per bar
 
 static datetime old_time;
 
 void OnInit() {
+   if (Pattern_size < 1){
+    Alert("Pattern size less than 1");
+    return;
+   }
    old_time = TimeCurrent();
    
    ArrayResize(divisions, Divisions+1);
@@ -38,17 +43,16 @@ void OnTick(){
    CopyTime(_Symbol,_Period,0,1,new_time);
    
    if (old_time != new_time[0]){ // if it's a new bar
-      double close[];
-      CopyClose(Symbol(),0,0,Pattern_size,close);
-      ArraySetAsSeries(close,true);
+      double open[];
+      CopyOpen(Symbol(),0,0,Pattern_size+1,open);
+      ArraySetAsSeries(open,true);
       
-      int division = get_fuzzy_section(close[0]);
-      int prev_division = get_fuzzy_section(close[1]);
-      knowledge.AddValue(division - prev_division);
+      int division = get_fuzzy_section(open[0]);
+      int prev_division = get_fuzzy_section(open[1]);
+      movement_sequence.Add(division - prev_division);
       
       old_time = new_time[0];
-   }
-  
+   }  
 }
 
 int get_fuzzy_section(double price){
@@ -71,5 +75,6 @@ void OnDeinit(const int reason)
    for (int i=0; i < Divisions +1; i++){
       HLineDelete(0, IntegerToString(i));
    }
+   movement_sequence.Shutdown();
    return;
   }

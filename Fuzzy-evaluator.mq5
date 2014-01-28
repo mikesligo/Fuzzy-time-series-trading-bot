@@ -17,6 +17,8 @@ CDynamicArray knowledge; // representing the jumps in fuzzy divisions per bar
 static datetime old_time;
 
 void OnInit() {
+   old_time = TimeCurrent();
+   
    ArrayResize(divisions, Divisions+1);
    
    int i;
@@ -40,11 +42,11 @@ void OnTick(){
       CopyClose(Symbol(),0,0,Pattern_size,close);
       ArraySetAsSeries(close,true);
       
-      Print ("Close[0] - ", close[0]);
-      Print ("Close[1] - ", close[1]);
       int division = get_fuzzy_section(close[0]);
       int prev_division = get_fuzzy_section(close[1]);
       knowledge.AddValue(division - prev_division);
+      
+      old_time = new_time[0];
    }
   
 }

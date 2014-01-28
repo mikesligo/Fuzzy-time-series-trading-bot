@@ -6,6 +6,7 @@
 #include "Libraries/CDynamicArray.mqh"
 #include "Pattern.mqh"
 #include <Arrays/ArrayInt.mqh>
+#include <Arrays/List.mqh>
 
 input int             Divisions    = 20;
 input double          Top          = 1.4;
@@ -14,14 +15,14 @@ input int             Pattern_size = 5;
 
 double divisions[];
 CArrayInt movement_sequence; // representing the jumps in fuzzy divisions per bar
+CList patterns;
 
 static datetime old_time;
 
 void OnInit() {
-   if (Pattern_size < 1){
-    Alert("Pattern size less than 1");
-    return;
-   }
+
+   patterns.
+   
    old_time = TimeCurrent();
    
    ArrayResize(divisions, Divisions+1);
@@ -38,7 +39,7 @@ void OnInit() {
   }
   
 void OnTick(){  
-  
+   int i;
    datetime new_time[1];
    CopyTime(_Symbol,_Period,0,1,new_time);
    
@@ -50,6 +51,9 @@ void OnTick(){
       int division = get_fuzzy_section(open[0]);
       int prev_division = get_fuzzy_section(open[1]);
       movement_sequence.Add(division - prev_division);
+      
+      for (i=Pattern_size+1; i > 0; i--){
+      } 
       
       old_time = new_time[0];
    }  

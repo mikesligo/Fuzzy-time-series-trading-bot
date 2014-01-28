@@ -17,23 +17,21 @@ class Pattern : public CObject
 public:
    CArrayInt *pattern;
    int outcome;
-   Pattern(int &prices[], int size);
+   
+   Pattern(CArrayInt *prices, int result);
    ~Pattern();
    
    virtual int Compare(const CObject *node,const int mode=0);
-   // then make list of patterns, sorted
    // make outcome of the pattern a dynamic array
    // then I should be able to just search for a pattern in the list with the in built search function (which will us my compare), and if it's not find then add it
   };
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-Pattern::Pattern(int &prices[], int size)
+Pattern::Pattern(CArrayInt *prices, int result)
   {
-   outcome = prices[0];
-   for (int i=size; i > 0; i--){
-      pattern.Add(prices[i]);
-   }
+   pattern = prices;
+   outcome = result;
   }
 //+------------------------------------------------------------------+
 //|                                                                  |

@@ -15,15 +15,14 @@
 class Pattern : public CObject
   {
 private:
+
+public:
    CArrayInt pattern;
    int outcome;
-public:
-   
-   string sig();
    Pattern(int &prices[], int size);
    ~Pattern();
    
-   int Compare(const CObject *node,const int mode=0);
+   virtual int       Compare(const CObject *node,const int mode=0);
    // get compare working
    // then make list of patterns, sorted
    // make outcome of the pattern a dynamic array
@@ -46,9 +45,8 @@ Pattern::~Pattern()
   {
   }
 //+------------------------------------------------------------------+
-string Pattern::sig(void){
-   return ("lol");
-}
 
-int Compare(const CObject *node,const int mode=0){
+int Pattern::Compare(const CObject *node,const int mode=0){
+   const Pattern* nd = node;
+   return pattern.CompareArray(nd->pattern);
 }

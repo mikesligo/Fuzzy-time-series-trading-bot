@@ -1,20 +1,62 @@
 #property copyright "Michael Gallagher (c) 2014"
-#property description "Fuzzy time series indicator"
+#property description "Fuzzy time series EA"
 #property version   "1.00"
+
+#include "Libraries/trendline.mq5"
+#include "Libraries/CDynamicArray.mqh"
+#include "Pattern.mqh"
 
 #property indicator_chart_window
 #property indicator_buffers 0
 #property indicator_plots   0
 
-input int             Divisions    = 7;
-input int             Bars_checked = 275;
+input int             Divisions    = 20;
+input double          Top          = 1.4;
+input double          Bottom       = 1.27;
+input int             Pattern_size = 5;
 
 double top[], bottom[];
+CDynamicArray knowledge; // representing the jumps in fuzzy divisions per bar
+
+static datetime old_time;
 
 void OnInit()
   {
-
+  
   }
+  
+void OnTick(){  
+  
+   datetime new_time[1];
+   CopyTime(_Symbol,_Period,0,1,new_time);
+   
+   if (old_time != new_time[0]){ // if it's a new bar
+      double close[];
+      CopyClose(Symbol(),0,0,Pattern_size,close);
+      ArraySetAsSeries(close,true);
+      
+      Print ("Close[0] - ", close[0]);
+      Print ("Close[1] - ", close[1]);
+      int division = get_fuzzy_section(close[0]);
+      int prev_division = get_fuzzy_section(close[1]);
+      knowledge.AddValue(division - prev_division);
+   }
+  
+}
+
+int get_fuzzy_section(double price){
+   int i;
+   double difference = Top - Bottom;
+   double increment = difference/(double) Divisions;
+   
+   for (i=0; i< Divisions; i++){
+      double division = (double)i*increment + lowest;
+      if (price > division && price <= division + increment){
+         return i+1;
+      }
+   }
+   return Divisions;
+}
 
 int OnCalculate(const int rates_total,
                 const int prev_calculated,
@@ -46,17 +88,8 @@ int OnCalculate(const int rates_total,
 //| Get highest and lowest points                                    |
 //+------------------------------------------------------------------+
 
-   double highest = high[rates_total-1];
-   double lowest = low[rates_total-1];
-
-   for (i=start; i < rates_total; i++){
-      if (high[i] > highest){
-         highest = high[i];
-      }
-      if (low[i] < lowest){
-         lowest = low[i];
-      }
-   }
+   double highest = Top;
+   double lowest = Bottom;
    
 //+------------------------------------------------------------------+
 //| Divide high and low price into fuzzy sections                    |
@@ -96,75 +129,4 @@ void OnDeinit(const int reason)
       TrendDelete(0, IntegerToString(i));
    }
    return;
-  }
-
-bool TrendCreate(const long            chart_ID=0,        // chart's ID
-                 const string          name="TrendLine",  // line name
-                 const int             sub_window=0,      // subwindow index
-                 datetime              time1=0,           // first point time
-                 double                price1=0,          // first point price
-                 datetime              time2=0,           // second point time
-                 double                price2=0,          // second point price
-                 const color           clr=clrRed,        // line color
-                 const ENUM_LINE_STYLE style=STYLE_SOLID, // line style
-                 const int             width=1,           // line width
-                 const bool            back=false,        // in the background
-                 const bool            selection=false,    // highlight to move
-                 const bool            ray_left=false,    // line's continuation to the left
-                 const bool            ray_right=false,   // line's continuation to the right
-                 const bool            hidden=false,       // hidden in the object list
-                 const long            z_order=0)         // priority for mouse click
-  {
-//--- reset the error value
-   ResetLastError();
-//--- create a trend line by the given coordinates
-   if(!ObjectCreate(chart_ID,name,OBJ_TREND,sub_window,time1,price1,time2,price2))
-     {
-      Print(__FUNCTION__,
-            ": failed to create a trend line! Error code = ",GetLastError());
-      return(false);
-     }
-//--- set line color
-   ObjectSetInteger(chart_ID,name,OBJPROP_COLOR,clr);
-//--- set line display style
-   ObjectSetInteger(chart_ID,name,OBJPROP_STYLE,style);
-//--- set line width
-   ObjectSetInteger(chart_ID,name,OBJPROP_WIDTH,width);
-//--- display in the foreground (false) or background (true)
-   ObjectSetInteger(chart_ID,name,OBJPROP_BACK,back);
-//--- enable (true) or disable (false) the mode of moving the line by mouse
-//--- when creating a graphical object using ObjectCreate function, the object cannot be
-//--- highlighted and moved by default. Inside this method, selection parameter
-//--- is true by default making it possible to highlight and move the object
-   ObjectSetInteger(chart_ID,name,OBJPROP_SELECTABLE,selection);
-   ObjectSetInteger(chart_ID,name,OBJPROP_SELECTED,selection);
-//--- enable (true) or disable (false) the mode of continuation of the line's display to the left
-   ObjectSetInteger(chart_ID,name,OBJPROP_RAY_LEFT,ray_left);
-//--- enable (true) or disable (false) the mode of continuation of the line's display to the right
-   ObjectSetInteger(chart_ID,name,OBJPROP_RAY_RIGHT,ray_right);
-//--- hide (true) or display (false) graphical object name in the object list
-   ObjectSetInteger(chart_ID,name,OBJPROP_HIDDEN,hidden);
-//--- set the priority for receiving the event of a mouse click in the chart
-   ObjectSetInteger(chart_ID,name,OBJPROP_ZORDER,z_order);
-//--- successful execution
-   return(true);
-  }
-
-//+------------------------------------------------------------------+
-//| The function deletes the trend line from the chart.              |
-//+------------------------------------------------------------------+
-bool TrendDelete(const long   chart_ID=0,       // chart's ID
-                 const string name="TrendLine") // line name
-  {
-//--- reset the error value
-   ResetLastError();
-//--- delete a trend line
-   if(!ObjectDelete(chart_ID,name))
-     {
-      Print(__FUNCTION__,
-            ": failed to delete a trend line! Error code = ",GetLastError());
-      return(false);
-     }
-//--- successful execution
-   return(true);
   }

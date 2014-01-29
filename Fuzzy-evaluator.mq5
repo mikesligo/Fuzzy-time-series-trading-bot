@@ -46,11 +46,18 @@ void OnTick(){
       double open[];
       CopyOpen(Symbol(),0,0,Pattern_size+1,open);
       ArraySetAsSeries(open,true);
-      if (open[0] > Top || open[0] < Bottom) return;
+      if (open[0] > Top || open[0] < Bottom){
+         old_time = new_time[0];
+         return;
+      }
       
       int division = get_fuzzy_section(open[0]);
       int prev_division = get_fuzzy_section(open[1]);
       int jump = division - prev_division;
+      if (jump > 15){ // outlier
+         old_time = new_time[0];
+         return;
+      }
       
       CArrayInt * latest = get_latest_pattern(movement_sequence);
       if (latest != NULL){

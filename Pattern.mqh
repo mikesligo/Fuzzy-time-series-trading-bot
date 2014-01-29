@@ -63,9 +63,12 @@ string Pattern::str(){
       else ret = ret + IntegerToString(pattern[i]);
    }
    ret = ret + " => ";
+   int total=0;
    for (i=0; i< outcome.Total(); i++){
+      total = total + outcome[i];
       if (i < outcome.Total() -1) ret = ret + IntegerToString(outcome[i]) +  ",";
       else ret = ret + IntegerToString(outcome[i]);
    }
+   ret = ret + " - Total: " + IntegerToString(total);
    return ret;
 }

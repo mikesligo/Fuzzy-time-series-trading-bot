@@ -48,14 +48,18 @@ Pattern::~Pattern()
 
 int Pattern::Compare(const CObject *node,const int mode=0){
    const Pattern* nd = node;
-   return pattern.CompareArray(nd.pattern);
+   for (int i=0; i<pattern.Total(); i++){
+      if (pattern[i] < nd.pattern[i]) return -1;
+      if (pattern[i] > nd.pattern[i]) return 1;
+   }
+   return 0;
 }
 
 string Pattern::str(){
    int i;
    string ret = "";
    for (i=0; i<pattern.Total(); i++){
-      if (i < pattern.Total() -1) ret = ret + IntegerToString(pattern[i]) + ",";
+      if (i < pattern.Total() -1) ret = ret + IntegerToString(pattern[i]) + "->";
       else ret = ret + IntegerToString(pattern[i]);
    }
    ret = ret + " => ";

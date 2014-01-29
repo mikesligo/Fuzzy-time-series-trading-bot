@@ -97,7 +97,7 @@ int get_fuzzy_section(double price){
 void OnDeinit(const int reason)
   {
    int i;
-   //patterns.Sort(0);
+   patterns.Sort(0);
    for (i=0; i< patterns.Total(); i++){
       Pattern* p = patterns.GetNodeAtIndex(i);
       Print(p.str());

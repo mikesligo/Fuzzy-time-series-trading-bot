@@ -2,8 +2,7 @@
 #property description "Fuzzy time series EA"
 #property version   "1.00"
 
-#include "Libraries/hline.mqh"
-#include "Libraries/CDynamicArray.mqh"
+#include "libs/hline.mqh"
 #include "Pattern.mqh"
 #include <Arrays/ArrayInt.mqh>
 #include <Arrays/List.mqh>

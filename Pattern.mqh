@@ -16,32 +16,52 @@ class Pattern : public CObject
   {
 public:
    CArrayInt *pattern;
-   int outcome;
+   CArrayInt *outcome;
    
    Pattern(CArrayInt *prices, int result);
    ~Pattern();
    
    virtual int Compare(const CObject *node,const int mode=0);
-   // make outcome of the pattern a dynamic array
-   // then I should be able to just search for a pattern in the list with the in built search function (which will us my compare), and if it's not find then add it
+   string str();
   };
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
 Pattern::Pattern(CArrayInt *prices, int result)
   {
+   outcome = new CArrayInt;
+   
    pattern = prices;
-   outcome = result;
+   outcome.Add(result);
   }
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
 Pattern::~Pattern()
   {
+  if(CheckPointer(pattern)==POINTER_DYNAMIC) {
+      delete (pattern);
+   }
+   delete (outcome);
   }
 //+------------------------------------------------------------------+
 
 int Pattern::Compare(const CObject *node,const int mode=0){
    const Pattern* nd = node;
    return pattern.CompareArray(nd.pattern);
+}
+
+string Pattern::str(){
+   int i;
+   string ret = "";
+   for (i=0; i<pattern.Total(); i++){
+      if (i < pattern.Total() -1) ret = ret + "->" + IntegerToString(pattern[i]);
+      else ret = ret + IntegerToString(pattern[i]);
+   }
+   ret = ret + " => ";
+   for (i=0; i< outcome.Total(); i++){
+      if (i < outcome.Total() -1) ret = ret + ", " + IntegerToString(outcome[i]);
+      else ret = ret + IntegerToString(outcome[i]);
+   }
+   return ret;
 }

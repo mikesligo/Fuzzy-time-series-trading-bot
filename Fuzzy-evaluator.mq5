@@ -14,12 +14,13 @@ input int             Pattern_size = 5;
 
 double divisions[];
 CArrayInt * movement_sequence; // representing the jumps in fuzzy divisions per bar
-CList patterns;
+CList *patterns;
 
 static datetime old_time;
 
 void OnInit() {   
    movement_sequence = new CArrayInt;
+   patterns = new CList;
    
    old_time = TimeCurrent();
    
@@ -50,10 +51,20 @@ void OnTick(){
       int prev_division = get_fuzzy_section(open[1]);
       int jump = division - prev_division;
       
-      patterns.Add(new Pattern(get_latest_pattern(movement_sequence), jump));
-      
-      movement_sequence.Add(jump);
-            
+      CArrayInt * latest = get_latest_pattern(movement_sequence);
+      if (latest != NULL){
+         Pattern * current = new Pattern(latest, jump); // remember to delete
+         Pattern * search = patterns.Search(current);
+         if (search == NULL){
+            patterns.Add(current);
+         }
+         else {
+            search.outcome.Add(jump);
+            delete(current);
+         }
+         
+         movement_sequence.Add(jump);
+      }
       old_time = new_time[0];
    }  
 }
@@ -84,9 +95,15 @@ int get_fuzzy_section(double price){
 
 void OnDeinit(const int reason)
   {
-   for (int i=0; i < Divisions +1; i++){
+   int i;
+   //patterns.Sort();
+   for (i=0; i< patterns.Total(); i++){
+      Pattern* p = patterns.GetNodeAtIndex(i);
+      Print(p.str());
+   }
+   for (i=0; i < Divisions +1; i++){
       HLineDelete(0, IntegerToString(i));
    }
-   movement_sequence.Shutdown();
-   return;
+   delete (movement_sequence);
+   delete (patterns);
   }

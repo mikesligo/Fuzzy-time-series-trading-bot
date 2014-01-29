@@ -55,12 +55,12 @@ string Pattern::str(){
    int i;
    string ret = "";
    for (i=0; i<pattern.Total(); i++){
-      if (i < pattern.Total() -1) ret = ret + IntegerToString(pattern[i]) + "->";
+      if (i < pattern.Total() -1) ret = ret + IntegerToString(pattern[i]) + ",";
       else ret = ret + IntegerToString(pattern[i]);
    }
    ret = ret + " => ";
    for (i=0; i< outcome.Total(); i++){
-      if (i < outcome.Total() -1) ret = ret + IntegerToString(outcome[i]) +  ", ";
+      if (i < outcome.Total() -1) ret = ret + IntegerToString(outcome[i]) +  ",";
       else ret = ret + IntegerToString(outcome[i]);
    }
    return ret;

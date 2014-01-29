@@ -46,6 +46,7 @@ void OnTick(){
       double open[];
       CopyOpen(Symbol(),0,0,Pattern_size+1,open);
       ArraySetAsSeries(open,true);
+      if (open[0] > Top || open[0] < Bottom) return;
       
       int division = get_fuzzy_section(open[0]);
       int prev_division = get_fuzzy_section(open[1]);

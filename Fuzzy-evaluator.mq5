@@ -62,10 +62,11 @@ void OnTick(){
             search.outcome.Add(jump);
             delete(current);
          }
-         
-         movement_sequence.Add(jump);
       }
+      movement_sequence.Add(jump);
       old_time = new_time[0];
+      
+
    }  
 }
 

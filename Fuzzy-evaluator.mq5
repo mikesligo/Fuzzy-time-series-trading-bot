@@ -54,10 +54,6 @@ void OnTick(){
       int division = get_fuzzy_section(open[0]);
       int prev_division = get_fuzzy_section(open[1]);
       int jump = division - prev_division;
-      if (jump > 15){ // outlier
-         old_time = new_time[0];
-         return;
-      }
       
       CArrayInt * latest = get_latest_pattern(movement_sequence);
       if (latest != NULL){
@@ -72,7 +68,7 @@ void OnTick(){
             delete(current);
          }
       }
-      movement_sequence.Add(jump);
+      if (jump < Divisions *(3/4)) movement_sequence.Add(jump); // outliers
       old_time = new_time[0];
    }  
 }

@@ -54,6 +54,7 @@ void OnTick(){
       CArrayInt * latest = get_latest_pattern(movement_sequence);
       if (latest != NULL){
          Pattern * current = new Pattern(latest, jump); // remember to delete
+         patterns.Sort(0);
          Pattern * search = patterns.Search(current);
          if (search == NULL){
             patterns.Add(current);
@@ -65,8 +66,6 @@ void OnTick(){
       }
       movement_sequence.Add(jump);
       old_time = new_time[0];
-      
-
    }  
 }
 
@@ -98,6 +97,7 @@ void OnDeinit(const int reason)
   {
    int i;
    patterns.Sort(0);
+   Print (IntegerToString(patterns.Total()));
    for (i=0; i< patterns.Total(); i++){
       Pattern* p = patterns.GetNodeAtIndex(i);
       Print(p.str());

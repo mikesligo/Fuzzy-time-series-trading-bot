@@ -25,7 +25,7 @@ input int             Divisions    = 20;
 input double          Top          = 1.4;
 input double          Bottom       = 1.27;
 input int             Pattern_size = 5;
-input int             StdDev_history = 300;
+input int             StdDev_history = 500;
 
 double divisions[];
 CArrayInt * movement_sequence; // representing the jumps in fuzzy divisions per bar
@@ -142,11 +142,11 @@ int OnCalculate(const int rates_total,
                 const long& volume[],
                 const int& spread[])
 { 
-   Print("hi");
-   if (rates_total < StdDev_history) return rates_total;
-   int start= rates_total-StdDev_history; 
-   if (prev_calculated > start) start = prev_calculated;
-   Print("bye");  
+   Print("Oncalculate");
+   int start;
+   
+   if (rates_total-prev_calculated < StdDev_history) start = prev_calculated;
+   else start = rates_total-StdDev_history; 
    for (int i=start; i< rates_total; i++){
       indicator_stdDev.add(open[i]);
       double stddev = indicator_stdDev.get_stdDev();

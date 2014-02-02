@@ -30,9 +30,6 @@ double CustomStdDev::get_stdDev(){
       sum = sum + (prices[i] - mean)*(prices[i] - mean);
    }
    double stdDev_sq = sum/prices.Total();
-   Print("stddev_sq: ", stdDev_sq);
-   Print("sum: ",sum);
-   Print("period: ", prices.Total());
    return MathSqrt(stdDev_sq);
 }
 

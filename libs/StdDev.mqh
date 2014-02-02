@@ -7,6 +7,8 @@ class CustomStdDev
 {
    private:
       CArrayDouble * prices;
+      bool mean_up_to_date;
+      double mean;
    public:
       CustomStdDev();
       ~CustomStdDev();
@@ -17,14 +19,16 @@ class CustomStdDev
 
 CustomStdDev::CustomStdDev(){
    prices = new CArrayDouble;
+   mean_up_to_date = false;
 }
 
 void CustomStdDev::add(double price){
    prices.Add(price);
+   mean_up_to_date = false;
 }
 
 double CustomStdDev::get_stdDev(){
-   double mean = get_mean();
+   get_mean();
    double sum = 0;
    for (int i=0; i< prices.Total(); i++){
       sum = sum + (prices[i] - mean)*(prices[i] - mean);
@@ -34,11 +38,14 @@ double CustomStdDev::get_stdDev(){
 }
 
 double CustomStdDev::get_mean(){
+   if (mean_up_to_date) return mean;
    double sum = 0;
    for (int i=0; i< prices.Total(); i++){
       sum = sum + prices[i];
    }
-   return sum/prices.Total();
+   mean = sum/prices.Total();
+   mean_up_to_date = true;
+   return mean;
 }
 
 CustomStdDev::~CustomStdDev(void){

@@ -150,8 +150,8 @@ int OnCalculate(const int rates_total,
    for (int i=start; i< rates_total; i++){
       indicator_stdDev.add(open[i]);
       double stddev = indicator_stdDev.get_stdDev();
-      plusOne[i] = open[i] + stddev;
-      minusOne[i] = open[i] - stddev; 
+      plusOne[i] = indicator_stdDev.get_mean() + stddev;
+      minusOne[i] = indicator_stdDev.get_mean() - stddev; 
    }
    return rates_total;
 }

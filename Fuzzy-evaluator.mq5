@@ -6,11 +6,13 @@
 #include "Pattern.mqh"
 #include <Arrays/ArrayInt.mqh>
 #include <Arrays/List.mqh>
+#include "libs/StdDev.mqh"
 
 input int             Divisions    = 20;
 input double          Top          = 1.4;
 input double          Bottom       = 1.27;
 input int             Pattern_size = 5;
+input int               StdDev_ma = 5;
 
 double divisions[];
 CArrayInt * movement_sequence; // representing the jumps in fuzzy divisions per bar
@@ -18,7 +20,7 @@ CList *patterns;
 
 static datetime old_time;
 
-void OnInit() {   
+void OnInit() {
    movement_sequence = new CArrayInt;
    patterns = new CList;
    
@@ -55,6 +57,7 @@ void OnTick(){
       int prev_division = get_fuzzy_section(open[1]);
       int jump = division - prev_division;
       
+      // Get standard deviation with a moving average of EVERYTHING and fuzzily split...?
       CArrayInt * latest = get_latest_pattern(movement_sequence);
       if (latest != NULL){
          Pattern * current = new Pattern(latest, jump); // remember to delete

@@ -6,50 +6,42 @@
 class CustomStdDev
 {
    private:
-      int period;
       CArrayDouble * prices;
    public:
-      CustomStdDev(int bars);
+      CustomStdDev();
       ~CustomStdDev();
       void add(double price);
       double get_stdDev();
       double get_mean();
 };
 
-CustomStdDev::CustomStdDev(int bars){
+CustomStdDev::CustomStdDev(){
    prices = new CArrayDouble;
-   period = bars;
 }
 
 void CustomStdDev::add(double price){
-   if (prices.Total() < period){
-      prices.Add(price);
-   }
-   else {
-      for (int i=0; i< period; i++){
-         prices.Insert(prices[i], i+1);
-      }
-      prices.Insert(price,0);
-   }
+   prices.Add(price);
 }
 
 double CustomStdDev::get_stdDev(){
    double mean = get_mean();
    double sum = 0;
-   for (int i=0; i< period; i++){
+   for (int i=0; i< prices.Total(); i++){
       sum = sum + (prices[i] - mean)*(prices[i] - mean);
    }
-   double stdDev_sq = sum/period;
+   double stdDev_sq = sum/prices.Total();
+   Print("stddev_sq: ", stdDev_sq);
+   Print("sum: ",sum);
+   Print("period: ", prices.Total());
    return MathSqrt(stdDev_sq);
 }
 
 double CustomStdDev::get_mean(){
-   if (prices.Total() < period) return NULL;
    double sum = 0;
-   for (int i=0; i< period; i++){
+   for (int i=0; i< prices.Total(); i++){
       sum = sum + prices[i];
    }
-   return sum/period;
+   return sum/prices.Total();
 }
 
 CustomStdDev::~CustomStdDev(void){

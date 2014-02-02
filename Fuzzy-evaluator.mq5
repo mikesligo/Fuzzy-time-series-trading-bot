@@ -25,7 +25,7 @@ input int             Divisions    = 20;
 input double          Top          = 1.4;
 input double          Bottom       = 1.27;
 input int             Pattern_size = 5;
-input int             StdDev_ma = 50;
+input int             StdDev_history = 300;
 
 double divisions[];
 CArrayInt * movement_sequence; // representing the jumps in fuzzy divisions per bar
@@ -39,8 +39,8 @@ static datetime old_time;
 void OnInit() {
    movement_sequence = new CArrayInt;
    patterns = new CList;
-   stdDev = new CustomStdDev(StdDev_ma);
-   indicator_stdDev = new CustomStdDev(StdDev_ma);
+   stdDev = new CustomStdDev();
+   indicator_stdDev = new CustomStdDev();
    
    old_time = TimeCurrent();
    
@@ -66,7 +66,6 @@ void OnTick(){
          old_time = new_time[0];
          return;
       }
-      Print("hi");
       int division = get_fuzzy_section(open[0]);
       int prev_division = get_fuzzy_section(open[1]);
       int jump = division - prev_division;
@@ -142,16 +141,17 @@ int OnCalculate(const int rates_total,
                 const long& tick_volume[],
                 const long& volume[],
                 const int& spread[])
-{
-   if (rates_total-prev_calculated > StdDev_ma) return rates_total;
-   for (int i=prev_calculated; i< rates_total; i++){
+{ 
+   Print("hi");
+   if (rates_total < StdDev_history) return rates_total;
+   int start= rates_total-StdDev_history; 
+   if (prev_calculated > start) start = prev_calculated;
+   Print("bye");  
+   for (int i=start; i< rates_total; i++){
       indicator_stdDev.add(open[i]);
       double stddev = indicator_stdDev.get_stdDev();
-      if (stddev){
-         plusOne[i] = open[i] + stddev;
-         
-         minusOne[i] = open[i] - stddev;
-      }
+      plusOne[i] = open[i] + stddev;
+      minusOne[i] = open[i] - stddev; 
    }
    return rates_total;
 }

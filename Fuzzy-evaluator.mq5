@@ -8,31 +8,63 @@
 #include "libs/StdDev.mqh"
 
 #property indicator_chart_window
-#property indicator_buffers 2
-#property indicator_plots   2
+#property indicator_buffers 7
+#property indicator_plots   7
+
 #property indicator_type1   DRAW_LINE
 #property indicator_color1  C'127,191,127'
 #property indicator_style1  STYLE_SOLID
-#property indicator_label1  "Plus 1"
+#property indicator_label1  "3 STDDEV"
 #property indicator_width1  2
+
 #property indicator_type2   DRAW_LINE
-#property indicator_color2  C'191,127,127'
+#property indicator_color2  C'127,191,127'
 #property indicator_style2  STYLE_SOLID
-#property indicator_label2  "Minus 1"
+#property indicator_label2  "2 STDDEV"
 #property indicator_width2  2
+
+#property indicator_type3   DRAW_LINE
+#property indicator_color3  C'191,127,127'
+#property indicator_style3  STYLE_SOLID
+#property indicator_label3  "1 STDDEV"
+#property indicator_width3  2
+
+#property indicator_type4   DRAW_LINE
+#property indicator_color4  C'255,140,0'
+#property indicator_style4  STYLE_SOLID
+#property indicator_label4  "Mean"
+#property indicator_width4  2
+
+#property indicator_type5   DRAW_LINE
+#property indicator_color5  C'220,20,60'
+#property indicator_style5  STYLE_SOLID
+#property indicator_label5  "Plus 1"
+#property indicator_width5  2
+
+#property indicator_type6   DRAW_LINE
+#property indicator_color6  C'220,20,60'
+#property indicator_style6  STYLE_SOLID
+#property indicator_label6  "Plus 2"
+#property indicator_width6  2
+
+#property indicator_type7   DRAW_LINE
+#property indicator_color7  C'220,20,60'
+#property indicator_style7  STYLE_SOLID
+#property indicator_label7  "Plus 3"
+#property indicator_width7  2
 
 input int             Divisions    = 20;
 input double          Top          = 1.4;
 input double          Bottom       = 1.27;
 input int             Pattern_size = 5;
-input int             StdDev_history = 500;
+input int             StdDev_history = 300;
 
 double divisions[];
 CArrayInt * movement_sequence; // representing the jumps in fuzzy divisions per bar
 CList *patterns;
 CustomStdDev * stdDev;
 CustomStdDev * indicator_stdDev;
-double plusOne[], minusOne[];
+double plusThree[],plusTwo[],plusOne[], std_mean[], minusOne[],minusTwo[],minusThree[];
 
 static datetime old_time;
 
@@ -44,8 +76,13 @@ void OnInit() {
    
    old_time = TimeCurrent();
    
-   SetIndexBuffer(0,plusOne,INDICATOR_DATA);
-   SetIndexBuffer(1,minusOne,INDICATOR_DATA);
+   SetIndexBuffer(0,plusThree,INDICATOR_DATA);
+   SetIndexBuffer(1,plusTwo,INDICATOR_DATA);
+   SetIndexBuffer(2,plusOne,INDICATOR_DATA);
+   SetIndexBuffer(3,std_mean,INDICATOR_DATA);
+   SetIndexBuffer(4,minusOne,INDICATOR_DATA);
+   SetIndexBuffer(5,minusTwo,INDICATOR_DATA);
+   SetIndexBuffer(6,minusThree,INDICATOR_DATA);
    
    ArrayResize(divisions, Divisions+1);
      
@@ -142,16 +179,30 @@ int OnCalculate(const int rates_total,
                 const long& volume[],
                 const int& spread[])
 { 
-   Print("Oncalculate");
-   int start;
+   if (prev_calculated == 0){
+      ArrayFill(plusThree,0,rates_total,0);
+      ArrayFill(plusTwo,0,rates_total,0);
+      ArrayFill(plusOne,0,rates_total,0);
+      ArrayFill(std_mean,0,rates_total,0);
+      ArrayFill(minusOne,0,rates_total,0);
+      ArrayFill(minusTwo,0,rates_total,0);
+      ArrayFill(minusThree,0,rates_total,0);
+   }
    
+   int start; 
    if (rates_total-prev_calculated < StdDev_history) start = prev_calculated;
-   else start = rates_total-StdDev_history; 
+   else start = rates_total-StdDev_history*3; // times 3 is just for visual effect 
    for (int i=start; i< rates_total; i++){
       indicator_stdDev.add(open[i]);
       double stddev = indicator_stdDev.get_stdDev();
+      
+      plusThree[i] = indicator_stdDev.get_mean() + stddev*3;
+      plusTwo[i] = indicator_stdDev.get_mean() + stddev*2;
       plusOne[i] = indicator_stdDev.get_mean() + stddev;
+      std_mean[i] = indicator_stdDev.get_mean();
       minusOne[i] = indicator_stdDev.get_mean() - stddev; 
+      minusTwo[i] = indicator_stdDev.get_mean() - stddev*2; 
+      minusThree[i] = indicator_stdDev.get_mean() - stddev*3;
    }
    return rates_total;
 }

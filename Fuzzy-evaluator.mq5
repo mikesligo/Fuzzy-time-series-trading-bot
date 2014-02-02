@@ -2,41 +2,55 @@
 #property description "Fuzzy time series EA"
 #property version   "1.00"
 
-#include "libs/hline.mqh"
 #include "Pattern.mqh"
 #include <Arrays/ArrayInt.mqh>
 #include <Arrays/List.mqh>
 #include "libs/StdDev.mqh"
 
+#property indicator_chart_window
+#property indicator_buffers 2
+#property indicator_plots   2
+#property indicator_type1   DRAW_LINE
+#property indicator_color1  C'127,191,127'
+#property indicator_style1  STYLE_SOLID
+#property indicator_label1  "Plus 1"
+#property indicator_width1  2
+#property indicator_type2   DRAW_LINE
+#property indicator_color2  C'191,127,127'
+#property indicator_style2  STYLE_SOLID
+#property indicator_label2  "Minus 1"
+#property indicator_width2  2
+
 input int             Divisions    = 20;
 input double          Top          = 1.4;
 input double          Bottom       = 1.27;
 input int             Pattern_size = 5;
-input int               StdDev_ma = 5;
+input int             StdDev_ma = 50;
 
 double divisions[];
 CArrayInt * movement_sequence; // representing the jumps in fuzzy divisions per bar
 CList *patterns;
+CustomStdDev * stdDev;
+CustomStdDev * indicator_stdDev;
+double plusOne[], minusOne[];
 
 static datetime old_time;
 
 void OnInit() {
    movement_sequence = new CArrayInt;
    patterns = new CList;
+   stdDev = new CustomStdDev(StdDev_ma);
+   indicator_stdDev = new CustomStdDev(StdDev_ma);
    
    old_time = TimeCurrent();
    
-   ArrayResize(divisions, Divisions+1);
+   SetIndexBuffer(0,plusOne,INDICATOR_DATA);
+   SetIndexBuffer(1,minusOne,INDICATOR_DATA);
    
-   int i;
+   ArrayResize(divisions, Divisions+1);
+     
    double difference = Top - Bottom;
    double increment = difference/(double) Divisions;
-   
-   for (i=0; i< Divisions; i++){
-      double division = (double)i*increment + Bottom;
-      divisions[i] = HLineCreate(0,IntegerToString(i),0,division);
-   }
-   divisions[Divisions] = HLineCreate(0,IntegerToString(Divisions+1),0,Top);
   }
   
 void OnTick(){  
@@ -52,10 +66,13 @@ void OnTick(){
          old_time = new_time[0];
          return;
       }
-      
+      Print("hi");
       int division = get_fuzzy_section(open[0]);
       int prev_division = get_fuzzy_section(open[1]);
       int jump = division - prev_division;
+      
+      //stdDev.add(open[0]);
+      //double dev = stdDev.get_stdDev();
       
       // Get standard deviation with a moving average of EVERYTHING and fuzzily split...?
       CArrayInt * latest = get_latest_pattern(movement_sequence);
@@ -109,9 +126,32 @@ void OnDeinit(const int reason)
       Pattern* p = patterns.GetNodeAtIndex(i);
       Print(p.str());
    }
-   for (i=0; i < Divisions +1; i++){
-      HLineDelete(0, IntegerToString(i));
-   }
    delete (movement_sequence);
    delete (patterns);
+   delete (stdDev);
+   delete (indicator_stdDev); 
   }
+
+int OnCalculate(const int rates_total,
+                const int prev_calculated,
+                const datetime& time[],
+                const double& open[],
+                const double& high[],
+                const double& low[],
+                const double& close[],
+                const long& tick_volume[],
+                const long& volume[],
+                const int& spread[])
+{
+   if (rates_total-prev_calculated > StdDev_ma) return rates_total;
+   for (int i=prev_calculated; i< rates_total; i++){
+      indicator_stdDev.add(open[i]);
+      double stddev = indicator_stdDev.get_stdDev();
+      if (stddev){
+         plusOne[i] = open[i] + stddev;
+         
+         minusOne[i] = open[i] - stddev;
+      }
+   }
+   return rates_total;
+}

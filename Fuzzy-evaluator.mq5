@@ -57,7 +57,12 @@ input int             Divisions    = 20;
 input double          Top          = 1.4;
 input double          Bottom       = 1.27;
 input int             Pattern_size = 5;
-input int             StdDev_history = 300;
+
+// amount of prices to be calculated for the stddev, FIFO
+input int             StdDev_period = 30; 
+
+// purely visual, how many bars back do you want to start calculating the stddev
+input int             StdDev_history = 100; 
 
 double divisions[];
 CArrayInt * movement_sequence; // representing the jumps in fuzzy divisions per bar
@@ -71,8 +76,8 @@ static datetime old_time;
 void OnInit() {
    movement_sequence = new CArrayInt;
    patterns = new CList;
-   stdDev = new CustomStdDev();
-   indicator_stdDev = new CustomStdDev();
+   stdDev = new CustomStdDev(StdDev_period);
+   indicator_stdDev = new CustomStdDev(StdDev_period);
    
    old_time = TimeCurrent();
    
@@ -191,7 +196,7 @@ int OnCalculate(const int rates_total,
    
    int start; 
    if (rates_total-prev_calculated < StdDev_history) start = prev_calculated;
-   else start = rates_total-StdDev_history*3; // times 3 is just for visual effect 
+   else start = rates_total-StdDev_history;  
    for (int i=start; i< rates_total; i++){
       indicator_stdDev.add(open[i]);
       double stddev = indicator_stdDev.get_stdDev();

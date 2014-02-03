@@ -6,24 +6,34 @@
 class CustomStdDev
 {
    private:
+      int period;
       CArrayDouble * prices;
       bool mean_up_to_date;
       double mean;
    public:
-      CustomStdDev();
+      CustomStdDev(int bars);
       ~CustomStdDev();
       void add(double price);
       double get_stdDev();
       double get_mean();
 };
 
-CustomStdDev::CustomStdDev(){
+CustomStdDev::CustomStdDev(int bars){
    prices = new CArrayDouble;
    mean_up_to_date = false;
+   period = bars;
 }
 
 void CustomStdDev::add(double price){
-   prices.Add(price);
+   if (prices.Total() < period){
+      prices.Add(price);
+   }
+   else {
+      for (int i=period-1; i >0; i--){
+         prices.Update(i, prices[i-1]);
+      }
+      prices.Update(0, price);
+   }
    mean_up_to_date = false;
 }
 

@@ -42,6 +42,7 @@ void CustomStdDev::add(double price){
 }
 
 double CustomStdDev::get_stdDev(){
+   if (prices.Total() == 0) return 0.0;
    get_mean();
    double sum = 0;
    for (int i=0; i< prices.Total(); i++){
@@ -53,6 +54,7 @@ double CustomStdDev::get_stdDev(){
 
 double CustomStdDev::get_mean(){
    if (mean_up_to_date) return mean;
+   if (prices.Total() == 0) return 0.0;
    double sum = 0;
    for (int i=0; i< prices.Total(); i++){
       sum = sum + prices[i];

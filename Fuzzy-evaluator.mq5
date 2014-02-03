@@ -57,7 +57,6 @@
 #property indicator_label7  "Plus 3"
 #property indicator_width7  2
 
-input int             Divisions    = 20;
 input double          Top          = 1.4;
 input double          Bottom       = 1.27;
 input int             Pattern_size = 5;
@@ -68,8 +67,7 @@ input int             StdDev_period = 30;
 // purely visual, how many bars back do you want to start calculating the stddev
 input int             StdDev_history = 100; 
 
-double divisions[];
-CArrayInt * movement_sequence; // representing the jumps in fuzzy divisions per bar
+CArrayDouble * movement_sequence; // representing the jumps in fuzzy divisions per bar
 CList *patterns;
 CustomStdDev * stdDev;
 CustomStdDev * indicator_stdDev;
@@ -78,7 +76,7 @@ double plusThree[],plusTwo[],plusOne[], std_mean[], minusOne[],minusTwo[],minusT
 static datetime old_time;
 
 void OnInit() {
-   movement_sequence = new CArrayInt;
+   movement_sequence = new CArrayDouble;
    patterns = new CList;
    stdDev = new CustomStdDev(StdDev_period);
    indicator_stdDev = new CustomStdDev(StdDev_period);
@@ -92,12 +90,7 @@ void OnInit() {
    SetIndexBuffer(4,minusOne,INDICATOR_DATA);
    SetIndexBuffer(5,minusTwo,INDICATOR_DATA);
    SetIndexBuffer(6,minusThree,INDICATOR_DATA);
-   
-   ArrayResize(divisions, Divisions+1);
-     
-   double difference = Top - Bottom;
-   double increment = difference/(double) Divisions;
-  }
+}
   
 void OnTick(){  
 
@@ -112,17 +105,16 @@ void OnTick(){
          old_time = new_time[0];
          return;
       }
-      int division = get_fuzzy_section(open[0]);
-      int prev_division = get_fuzzy_section(open[1]);
-      int jump = division - prev_division;
       
-      //stdDev.add(open[0]);
-      //double dev = stdDev.get_stdDev();
+      double division = get_fuzzy_section(open[0]);
+      double prev_division = get_fuzzy_section(open[1]);
+      double jump = division - prev_division;
       
-      // Get standard deviation with a moving average of EVERYTHING and fuzzily split...?
-      CArrayInt * latest = get_latest_pattern(movement_sequence);
+      stdDev.add(open[0]);
+      
+      CArrayDouble * latest = get_latest_pattern(movement_sequence);
       if (latest != NULL){
-         Pattern * current = new Pattern(latest, jump); // remember to delete
+         Pattern * current = new Pattern(latest, jump);
          patterns.Sort(0);
          Pattern * search = patterns.Search(current);
          if (search == NULL){
@@ -133,49 +125,43 @@ void OnTick(){
             delete(current);
          }
       }
-      if (jump < Divisions *(3/4)) movement_sequence.Add(jump); // outliers
+      movement_sequence.Add(jump); // outliers
       old_time = new_time[0];
    }  
 }
 
-CArrayInt* get_latest_pattern(CArrayInt* seq){
+CArrayDouble* get_latest_pattern(CArrayDouble* seq){
    if (seq.Total() < Pattern_size+1) return NULL;
-   CArrayInt *new_arr = new CArrayInt;
+   CArrayDouble *new_arr = new CArrayDouble;
    for (int i=seq.Total()-Pattern_size-1; i < seq.Total()-1; i++){
       new_arr.Add(seq[i]);
    }
    return new_arr;
 }
 
-int get_fuzzy_section(double price){
-   int i;
-   double difference = Top - Bottom;
-   double increment = difference/(double) Divisions;
-   
-   for (i=0; i< Divisions; i++){
-      double division = (double)i*increment + Bottom;
-      if (price > division && price <= division + increment){
-         return i+1;
-      }
+double get_fuzzy_section(double price){
+   double st = stdDev.get_stdDev();
+   double mean = stdDev.get_mean();
+   if (price > mean + 3*st){
+      return 3.0;
+   } else if (price > mean + 2*st){
+      return 3.0;
+   } else if (price > mean + st){
+      return 2.0;
+   } else if (price > mean + 0.5*st){
+      return 1.0;
+   } else if (price > mean - 0.5*st){
+      return 0;
+   } else if (price > mean - st){
+      return -1.0;
+   } else if (price > mean - 2*st){
+      return -2.0;
+   } else if (price > mean - 3*st){
+      return -3.0;
+   } else {
+      return -4.0;
    }
-   if (price < Top) return Divisions+1;
-   return Divisions;
 }
-
-void OnDeinit(const int reason)
-  {
-   int i;
-   patterns.Sort(0);
-   Print (IntegerToString(patterns.Total()));
-   for (i=0; i< patterns.Total(); i++){
-      Pattern* p = patterns.GetNodeAtIndex(i);
-      Print(p.str());
-   }
-   delete (movement_sequence);
-   delete (patterns);
-   delete (stdDev);
-   delete (indicator_stdDev); 
-  }
 
 int OnCalculate(const int rates_total,
                 const int prev_calculated,
@@ -215,3 +201,18 @@ int OnCalculate(const int rates_total,
    }
    return rates_total;
 }
+
+void OnDeinit(const int reason)
+  {
+   int i;
+   patterns.Sort(0);
+   Print (IntegerToString(patterns.Total()));
+   for (i=0; i< patterns.Total(); i++){
+      Pattern* p = patterns.GetNodeAtIndex(i);
+      Print(p.str());
+   }
+   delete (movement_sequence);
+   delete (patterns);
+   delete (stdDev);
+   delete (indicator_stdDev); 
+  }

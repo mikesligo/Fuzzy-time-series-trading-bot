@@ -14,15 +14,15 @@
 //|                                                                  |
 //+------------------------------------------------------------------+
 
-#include <Arrays/ArrayInt.mqh>
+#include <Arrays/ArrayDouble.mqh>
 
 class Pattern : public CObject
   {
 public:
-   CArrayInt *pattern;
-   CArrayInt *outcome;
+   CArrayDouble *pattern;
+   CArrayDouble *outcome;
    
-   Pattern(CArrayInt *prices, int result);
+   Pattern(CArrayDouble *prices, double result);
    ~Pattern();
    
    virtual int Compare(const CObject *node,const int mode=0);
@@ -31,9 +31,9 @@ public:
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-Pattern::Pattern(CArrayInt *prices, int result)
+Pattern::Pattern(CArrayDouble *prices, double result)
   {
-   outcome = new CArrayInt;
+   outcome = new CArrayDouble;
    
    pattern = prices;
    outcome.Add(result);
@@ -63,16 +63,16 @@ string Pattern::str(){
    int i;
    string ret = "";
    for (i=0; i<pattern.Total(); i++){
-      if (i < pattern.Total() -1) ret = ret + IntegerToString(pattern[i]) + "->";
-      else ret = ret + IntegerToString(pattern[i]);
+      if (i < pattern.Total() -1) ret = ret + DoubleToString(pattern[i]) + "->";
+      else ret = ret + DoubleToString(pattern[i]);
    }
    ret = ret + " => ";
-   int total=0;
+   double total=0;
    for (i=0; i< outcome.Total(); i++){
       total = total + outcome[i];
-      if (i < outcome.Total() -1) ret = ret + IntegerToString(outcome[i]) +  ",";
-      else ret = ret + IntegerToString(outcome[i]);
+      if (i < outcome.Total() -1) ret = ret + DoubleToString(outcome[i]) +  ",";
+      else ret = ret + DoubleToString(outcome[i]);
    }
-   ret = ret + " - Total: " + IntegerToString(total);
+   ret = ret + " - Total: " + DoubleToString(total);
    return ret;
 }

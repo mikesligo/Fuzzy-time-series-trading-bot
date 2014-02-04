@@ -60,11 +60,7 @@ int Pattern::Compare(const CObject *node,const int mode=0){
 }
 
 string Pattern::str(bool surpress_lone=true){
-   if (surpress_lone == true){
-      if (outcome.Total() == 1){
-         return "";
-      }
-   }
+
    int i;
    string ret = "";
    string outcome_str = "";

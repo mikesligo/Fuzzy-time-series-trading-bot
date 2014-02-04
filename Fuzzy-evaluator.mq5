@@ -57,8 +57,6 @@
 #property indicator_label7  "Plus 3"
 #property indicator_width7  2
 
-input double          Top          = 1.4;
-input double          Bottom       = 1.27;
 input int             Pattern_size = 5;
 
 // amount of prices to be calculated for the stddev, FIFO
@@ -101,14 +99,10 @@ void OnTick(){
       double open[];
       CopyOpen(Symbol(),0,0,Pattern_size+1,open);
       ArraySetAsSeries(open,true);
-      if (open[0] > Top || open[0] < Bottom){
-         old_time = new_time[0];
-         return;
-      }
       
       double division = get_fuzzy_section(open[0]);
       double prev_division = get_fuzzy_section(open[1]);
-      double jump = division - prev_division;
+      double jump = prev_division-division;
       
       stdDev.add(open[0]);
       
@@ -125,7 +119,7 @@ void OnTick(){
             delete(current);
          }
       }
-      movement_sequence.Add(jump); // outliers
+      movement_sequence.Add(division); // outliers
       old_time = new_time[0];
    }  
 }
@@ -133,7 +127,7 @@ void OnTick(){
 CArrayDouble* get_latest_pattern(CArrayDouble* seq){
    if (seq.Total() < Pattern_size+1) return NULL;
    CArrayDouble *new_arr = new CArrayDouble;
-   for (int i=seq.Total()-Pattern_size-1; i < seq.Total()-1; i++){
+   for (int i=seq.Total()-Pattern_size; i < seq.Total(); i++){
       new_arr.Add(seq[i]);
    }
    return new_arr;
@@ -143,7 +137,7 @@ double get_fuzzy_section(double price){
    double st = stdDev.get_stdDev();
    double mean = stdDev.get_mean();
    if (price > mean + 3*st){
-      return 3.0;
+      return 4.0;
    } else if (price > mean + 2*st){
       return 3.0;
    } else if (price > mean + st){
@@ -209,7 +203,7 @@ void OnDeinit(const int reason)
    Print (IntegerToString(patterns.Total()));
    for (i=0; i< patterns.Total(); i++){
       Pattern* p = patterns.GetNodeAtIndex(i);
-      string str = p.str();
+      string str = p.str(false);
       if (str != "") Print(p.str());
    }
    delete (movement_sequence);

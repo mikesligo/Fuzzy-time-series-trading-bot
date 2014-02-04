@@ -151,7 +151,7 @@ double get_fuzzy_section(double price){
    } else if (price > mean + 0.5*st){
       return 1.0;
    } else if (price > mean - 0.5*st){
-      return 0;
+      return 0.5;
    } else if (price > mean - st){
       return -1.0;
    } else if (price > mean - 2*st){
@@ -209,7 +209,8 @@ void OnDeinit(const int reason)
    Print (IntegerToString(patterns.Total()));
    for (i=0; i< patterns.Total(); i++){
       Pattern* p = patterns.GetNodeAtIndex(i);
-      Print(p.str());
+      string str = p.str();
+      if (str != "") Print(p.str());
    }
    delete (movement_sequence);
    delete (patterns);

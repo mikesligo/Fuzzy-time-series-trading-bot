@@ -26,7 +26,7 @@ public:
    ~Pattern();
    
    virtual int Compare(const CObject *node,const int mode=0);
-   string str();
+   string str(bool surpress_lone=true);
   };
 //+------------------------------------------------------------------+
 //|                                                                  |
@@ -59,20 +59,29 @@ int Pattern::Compare(const CObject *node,const int mode=0){
    return 0;
 }
 
-string Pattern::str(){
+string Pattern::str(bool surpress_lone=true){
+   if (surpress_lone == true){
+      if (outcome.Total() == 1){
+         return "";
+      }
+   }
    int i;
    string ret = "";
-   for (i=0; i<pattern.Total(); i++){
-      if (i < pattern.Total() -1) ret = ret + DoubleToString(pattern[i]) + "->";
-      else ret = ret + DoubleToString(pattern[i]);
-   }
-   ret = ret + " => ";
+   string outcome_str = "";
+   
    double total=0;
    for (i=0; i< outcome.Total(); i++){
       total = total + outcome[i];
-      if (i < outcome.Total() -1) ret = ret + DoubleToString(outcome[i]) +  ",";
-      else ret = ret + DoubleToString(outcome[i]);
+      if (i < outcome.Total() -1) outcome_str = outcome_str + DoubleToString(outcome[i],1) +  ", ";
+      else outcome_str = outcome_str + DoubleToString(outcome[i],1);
    }
-   ret = ret + " - Total: " + DoubleToString(total);
+   ret = ret + "Total: " + DoubleToString(total,1) + " :::\t";
+   
+   for (i=0; i<pattern.Total(); i++){
+      if (i < pattern.Total() -1) ret = ret + DoubleToString(pattern[i],1) + " -> ";
+      else ret = ret + DoubleToString(pattern[i],1);
+   }
+   ret = ret + " => " + outcome_str; 
+
    return ret;
 }

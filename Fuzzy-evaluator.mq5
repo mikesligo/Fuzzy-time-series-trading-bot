@@ -204,7 +204,7 @@ void OnDeinit(const int reason)
    for (i=0; i< patterns.Total(); i++){
       Pattern* p = patterns.GetNodeAtIndex(i);
       string str = p.str(false);
-      if (str != "") Print(p.str());
+      if (str != "") Print(str);
    }
    delete (movement_sequence);
    delete (patterns);

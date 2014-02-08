@@ -144,7 +144,7 @@ double get_fuzzy_section(double price){
       return 2.0;
    } else if (price > mean + 0.5*st){
       return 1.0;
-   } else if (price > mean - 0.5*st){
+   } else if (price > mean - 0.5*st) {
       return 0.5;
    } else if (price > mean - st){
       return -1.0;
@@ -184,7 +184,7 @@ int OnCalculate(const int rates_total,
    for (int i=start; i< rates_total; i++){
       indicator_stdDev.add(open[i]);
       double stddev = indicator_stdDev.get_stdDev();
-      
+      Print(indicator_stdDev.zscore(open[i]));
       plusThree[i] = indicator_stdDev.get_mean() + stddev*3;
       plusTwo[i] = indicator_stdDev.get_mean() + stddev*2;
       plusOne[i] = indicator_stdDev.get_mean() + stddev;

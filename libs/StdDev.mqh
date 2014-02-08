@@ -14,18 +14,22 @@ class CustomStdDev
       CArrayDouble * prices;
       bool mean_up_to_date;
       double mean;
+      bool stddev_up_to_date;
+      double stddev;
    public:
       CustomStdDev(int bars);
       ~CustomStdDev();
       void add(double price);
       double get_stdDev();
       double get_mean();
+      double zscore(double price);
 };
 
 CustomStdDev::CustomStdDev(int bars){
    prices = new CArrayDouble;
    mean_up_to_date = false;
    period = bars;
+   stddev_up_to_date = false;
 }
 
 void CustomStdDev::add(double price){
@@ -39,17 +43,21 @@ void CustomStdDev::add(double price){
       prices.Update(0, price);
    }
    mean_up_to_date = false;
+   stddev_up_to_date = false;
 }
 
 double CustomStdDev::get_stdDev(){
    if (prices.Total() == 0) return 0.0;
+   if (stddev_up_to_date) return stddev;
    get_mean();
    double sum = 0;
    for (int i=0; i< prices.Total(); i++){
       sum = sum + (prices[i] - mean)*(prices[i] - mean);
    }
    double stdDev_sq = sum/prices.Total();
-   return MathSqrt(stdDev_sq);
+   stddev = MathSqrt(stdDev_sq);
+   stddev_up_to_date = true;
+   return stddev;
 }
 
 double CustomStdDev::get_mean(){
@@ -66,4 +74,12 @@ double CustomStdDev::get_mean(){
 
 CustomStdDev::~CustomStdDev(void){
    delete (prices);
+}
+
+double CustomStdDev::zscore(double price){
+   if (get_stdDev() != 0){
+      double difference = price - get_mean();   
+      return difference/get_stdDev();
+   }
+   else return 0.0;
 }

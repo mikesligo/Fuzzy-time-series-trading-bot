@@ -66,22 +66,21 @@ string Pattern::str(bool surpress_lone=true){
       }
    }
    int i;
-   string ret = "";
    string outcome_str = "";
    
    double total=0;
    for (i=0; i< outcome.Total(); i++){
       total = total + outcome[i];
-      if (i < outcome.Total() -1) outcome_str = outcome_str + DoubleToString(outcome[i],1) +  ", ";
-      else outcome_str = outcome_str + DoubleToString(outcome[i],1);
+      if (i < outcome.Total() -1) outcome_str = outcome_str + DoubleToString(outcome[i],2) +  ", ";
+      else outcome_str = outcome_str + DoubleToString(outcome[i],2);
    }
-   ret = ret + "Total: " + DoubleToString(total,1) + " :::\t";
+   string ret = DoubleToString(total,2) + "  ,\t";
    
    for (i=0; i<pattern.Total(); i++){
-      if (i < pattern.Total() -1) ret = ret + DoubleToString(pattern[i],1) + " -> ";
-      else ret = ret + DoubleToString(pattern[i],1);
+      if (i < pattern.Total() -1) ret = ret + DoubleToString(pattern[i],2) + " -> ";
+      else ret = ret + DoubleToString(pattern[i],2);
    }
-   ret = ret + " => " + outcome_str; 
+   ret = ret + " , " + outcome_str; 
 
    return ret;
 }

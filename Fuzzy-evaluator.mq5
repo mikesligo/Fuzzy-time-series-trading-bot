@@ -65,6 +65,12 @@ input int             StdDev_period = 30;
 // purely visual, how many bars back do you want to start calculating the stddev
 input int             StdDev_history = 100; 
 
+// we are dividing the standard deviations into segments of this size
+input double          fuzzy_section_size = 0.02;
+
+input string             InpFileName="out.csv";  // file name
+input string             InpDirectoryName="Data"; // directory name
+
 CArrayDouble * movement_sequence; // representing the jumps in fuzzy divisions per bar
 CList *patterns;
 CustomStdDev * stdDev;
@@ -100,9 +106,9 @@ void OnTick(){
       CopyOpen(Symbol(),0,0,Pattern_size+1,open);
       ArraySetAsSeries(open,true);
       
-      double division = get_fuzzy_section(open[0]);
-      double prev_division = get_fuzzy_section(open[1]);
-      double jump = prev_division-division;
+      double zscore = get_fuzzy_section(stdDev.zscore(open[0]));
+      double prev_zscore = get_fuzzy_section(stdDev.zscore(open[1]));
+      double jump = prev_zscore-zscore;
       
       stdDev.add(open[0]);
       
@@ -119,7 +125,7 @@ void OnTick(){
             delete(current);
          }
       }
-      movement_sequence.Add(division); // outliers
+      movement_sequence.Add(jump);
       old_time = new_time[0];
    }  
 }
@@ -133,28 +139,19 @@ CArrayDouble* get_latest_pattern(CArrayDouble* seq){
    return new_arr;
 }
 
-double get_fuzzy_section(double price){
-   double st = stdDev.get_stdDev();
-   double mean = stdDev.get_mean();
-   if (price > mean + 3*st){
-      return 4.0;
-   } else if (price > mean + 2*st){
-      return 3.0;
-   } else if (price > mean + st){
-      return 2.0;
-   } else if (price > mean + 0.5*st){
-      return 1.0;
-   } else if (price > mean - 0.5*st) {
-      return 0.5;
-   } else if (price > mean - st){
-      return -1.0;
-   } else if (price > mean - 2*st){
-      return -2.0;
-   } else if (price > mean - 3*st){
-      return -3.0;
-   } else {
-      return -4.0;
+double get_fuzzy_section(double zscore){
+   double increment = fuzzy_section_size;
+   double start = -4.0;
+   double end = 4.0;
+   
+   if (zscore < start) return -4.0;
+   
+   for (double i=start; i < end; i += increment){
+      if (zscore > i && zscore < i+increment){
+         return i+increment;
+      }
    }
+   return 4.0;
 }
 
 int OnCalculate(const int rates_total,
@@ -184,7 +181,6 @@ int OnCalculate(const int rates_total,
    for (int i=start; i< rates_total; i++){
       indicator_stdDev.add(open[i]);
       double stddev = indicator_stdDev.get_stdDev();
-      Print(indicator_stdDev.zscore(open[i]));
       plusThree[i] = indicator_stdDev.get_mean() + stddev*3;
       plusTwo[i] = indicator_stdDev.get_mean() + stddev*2;
       plusOne[i] = indicator_stdDev.get_mean() + stddev;
@@ -201,11 +197,25 @@ void OnDeinit(const int reason)
    int i;
    patterns.Sort(0);
    Print (IntegerToString(patterns.Total()));
-   for (i=0; i< patterns.Total(); i++){
-      Pattern* p = patterns.GetNodeAtIndex(i);
-      string str = p.str(false);
-      if (str != "") Print(str);
-   }
+
+   int file_handle=FileOpen(InpDirectoryName+"//"+InpFileName,FILE_READ|FILE_WRITE|FILE_CSV);
+   if(file_handle!=INVALID_HANDLE)
+     {
+      PrintFormat("%s file is available for writing",InpFileName);
+      PrintFormat("File path: %s\\Files\\",TerminalInfoString(TERMINAL_DATA_PATH));
+
+      for (i=0; i< patterns.Total(); i++){
+         Pattern* p = patterns.GetNodeAtIndex(i);
+         string str = p.str(false);
+         if (str != "") FileWrite(file_handle,str);
+      }
+      //--- close the file
+      FileClose(file_handle);
+      PrintFormat("Data is written, %s file is closed",InpFileName);
+     }
+   else
+      PrintFormat("Failed to open %s file, Error code = %d",InpFileName,GetLastError());
+   
    delete (movement_sequence);
    delete (patterns);
    delete (stdDev);
